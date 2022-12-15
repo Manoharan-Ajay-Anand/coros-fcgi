@@ -1,0 +1,3 @@
+[submodule "packages/coros"]
+	path = packages/coros
+	url = git@github.com:Manoharan-Ajay-Anand/coros.git

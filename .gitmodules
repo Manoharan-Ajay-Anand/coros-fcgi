@@ -1,3 +1,3 @@
-[submodule "packages/coros"]
-	path = packages/coros
+[submodule "libraries/coros"]
+	path = libraries/coros
 	url = git@github.com:Manoharan-Ajay-Anand/coros.git

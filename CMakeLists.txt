@@ -8,7 +8,7 @@ project(Coros-FCGI
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
 
-add_subdirectory(packages/coros)
+add_subdirectory(libraries/coros)
 
 add_library(coros-fcgi STATIC 
     src/coros_http/app.cpp

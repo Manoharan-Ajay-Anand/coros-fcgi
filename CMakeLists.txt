@@ -11,8 +11,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
 add_subdirectory(libraries/coros)
 
 add_library(coros-fcgi STATIC 
-    src/coros_http/app.cpp
-    src/coros_http/common/commons.cpp)
+    src/coros_fcgi/channel/channel.cpp
+    src/coros_fcgi/channel/pipe.cpp
+    src/coros_fcgi/commons/integer.cpp
+    src/coros_fcgi/record/header.cpp
+    src/coros_fcgi/record/processor.cpp
+    src/coros_fcgi/app.cpp)
 target_include_directories(coros-fcgi PUBLIC src)
 target_link_libraries(coros-fcgi PUBLIC coros)
 

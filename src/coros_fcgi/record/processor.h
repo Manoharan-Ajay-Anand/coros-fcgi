@@ -8,19 +8,28 @@
 
 namespace coros::base {
     class Socket;
+
+    class ThreadPool;
 }
 
 namespace coros::fcgi {
     struct RecordHeader;
 
-    class ApplicationChannel;
+    struct Channel;
+
+    class FcgiHandler;
 
     class RecordProcessor {
         private:
-            std::unordered_map<int, std::unique_ptr<ApplicationChannel>> channel_map;
+            std::unordered_map<int, std::unique_ptr<Channel>> channel_map;
+            base::ThreadPool& thread_pool;
+            FcgiHandler& fcgi_handler;
             base::AwaitableFuture begin_request(RecordHeader& header, base::Socket& socket);
             base::AwaitableFuture set_param(RecordHeader& header, base::Socket& socket);
+            base::AwaitableFuture receive_stdin(RecordHeader& header, base::Socket& socket);
+            base::AwaitableFuture receive_data(RecordHeader& header, base::Socket& socket);
         public:
+            RecordProcessor(base::ThreadPool& thread_pool, FcgiHandler& fcgi_handler);
             base::AwaitableFuture process(RecordHeader& header, base::Socket& socket);
     };
 }

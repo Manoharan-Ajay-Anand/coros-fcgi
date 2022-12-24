@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 
 coros::base::AwaitableFuture coros::fcgi::RecordHeader::parse(coros::base::Socket& socket) {
     uint8_t header_data[FCGI_HEADER_LEN];

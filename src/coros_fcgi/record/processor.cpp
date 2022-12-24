@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
-#include <string>
+#include <sstream>
 
 coros::fcgi::RecordProcessor::RecordProcessor(base::ThreadPool& thread_pool, 
                                               FcgiHandler& fcgi_handler): thread_pool(thread_pool),
@@ -97,7 +97,9 @@ coros::base::AwaitableFuture coros::fcgi::RecordProcessor::process(RecordHeader&
             co_await receive_data(header, socket);
             break;
         default:
-            throw std::runtime_error("Unknown header type: ");
+            std::stringstream ss;
+            ss << "Unknown header type: " << header.type;
+            throw std::runtime_error(ss.str());
     }
     co_await socket.skip(header.padding_length);
 }

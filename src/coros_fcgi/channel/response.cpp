@@ -20,9 +20,9 @@ coros::fcgi::Response::Response(int request_id, base::Socket& socket, bool keep_
 coros::base::AwaitableFuture coros::fcgi::Response::send_response_body() {
     int content_length = response_body.size();
     int padding_length = 0;
-    int remainder = (FCGI_HEADER_LEN + content_length) % FCGI_HEADER_LEN;
+    int remainder = (FCGI_ALIGNMENT_LEN + content_length) % FCGI_ALIGNMENT_LEN;
     if (remainder > 0) {
-        padding_length = FCGI_HEADER_LEN - remainder;
+        padding_length = FCGI_ALIGNMENT_LEN - remainder;
     }
     RecordHeader header { FCGI_VERSION_1, FCGI_STDOUT, request_id, content_length, padding_length};
     co_await header.serialize(socket);

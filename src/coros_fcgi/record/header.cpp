@@ -15,3 +15,13 @@ coros::base::AwaitableFuture coros::fcgi::RecordHeader::parse(coros::base::Socke
     this->content_length = coros::fcgi::read_uint16_be(header_data + 4);
     this->padding_length = header_data[6];
 }
+
+coros::base::AwaitableFuture coros::fcgi::RecordHeader::serialize(coros::base::Socket& socket) {
+    uint8_t header_data[FCGI_HEADER_LEN];
+    header_data[0] = this->version;
+    header_data[1] = this->type;
+    coros::fcgi::write_uint16_be(header_data + 2, this->request_id);
+    coros::fcgi::write_uint16_be(header_data + 4, this->content_length);
+    header_data[6] = this->padding_length;
+    co_await socket.write(reinterpret_cast<std::byte*>(header_data), FCGI_HEADER_LEN);
+}

@@ -1,20 +1,24 @@
 #include <iostream>
 
-#include "coros_fcgi/app.h"
-#include "coros_fcgi/channel/channel.h"
 #include "coros/async/thread_pool.h"
 #include "coros/event/monitor.h"
 #include "coros/network/server.h"
 
+#include "coros_fcgi/app.h"
+#include "coros_fcgi/channel/channel.h"
+#include "coros_fcgi/channel/response.h"
+
 class HelloHandler : public coros::fcgi::FcgiHandler {
     public:
         coros::base::Future handle_request(coros::fcgi::Channel& channel) {
-            std::cout << "Received request..." << std::endl;
-            auto& variables = channel.variables;
-            for (auto it = variables.begin(); it != variables.end(); ++it) {
-                std::cout << it->first << ": " << it->second << std::endl;
-            }
-            co_return;
+            coros::fcgi::Response& response = channel.response;
+            std::string content_len("content-length: 18");
+            std::string content_type("content-type: text/html\r\n");
+            std::string content("welcome to fastcgi");
+            co_await response.println(content_len);
+            co_await response.println(content_type);
+            co_await response.print(content);
+            co_await response.flush();
         }
 };
 

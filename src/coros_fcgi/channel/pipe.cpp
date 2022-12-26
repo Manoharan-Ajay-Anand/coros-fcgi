@@ -27,7 +27,12 @@ coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, int size) 
 
 coros::base::AwaitableValue<std::byte> coros::fcgi::Pipe::read_b() {
     co_await PipeReceiveAwaiter { available, sender_mutex, receiver_executor, sender_executor };
-    std::byte b = co_await socket->read_b();
+    std::byte b;
+    {
+        std::lock_guard<std::mutex> guard(sender_mutex);
+        b = co_await socket->read_b();
+        available -= 1;
+    }
     co_return b;
 }
 

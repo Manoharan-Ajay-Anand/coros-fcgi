@@ -13,6 +13,7 @@ add_subdirectory(libraries/coros)
 add_library(coros-fcgi STATIC 
     src/coros_fcgi/channel/channel.cpp
     src/coros_fcgi/channel/pipe.cpp
+    src/coros_fcgi/channel/response.cpp
     src/coros_fcgi/commons/integer.cpp
     src/coros_fcgi/record/header.cpp
     src/coros_fcgi/record/processor.cpp

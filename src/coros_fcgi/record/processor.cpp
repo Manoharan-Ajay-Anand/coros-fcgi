@@ -21,15 +21,18 @@ coros::fcgi::RecordProcessor::RecordProcessor(base::ThreadPool& thread_pool,
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::begin_request(RecordHeader& header, 
                                                                          coros::base::Socket& socket) {
-    channel_map[header.request_id] = std::make_unique<Channel>(thread_pool);
-    co_await socket.skip(header.content_length);
+    uint8_t data[FCGI_BEGIN_REQUEST_LEN];
+    co_await socket.read(reinterpret_cast<std::byte*>(data), FCGI_BEGIN_REQUEST_LEN);
+    bool keep_conn = (data[2] & FCGI_KEEP_CONN) == FCGI_KEEP_CONN;
+    channel_map[header.request_id] = 
+            std::make_unique<Channel>(header.request_id, socket, keep_conn, thread_pool);
 }
 
 struct ParamDetail {
     int num_bytes;
-    long content_size;
+    long long content_size;
 
-    inline long size() {
+    inline long long size() {
         return num_bytes + content_size;
     }
 };

@@ -2,6 +2,10 @@
 #define COROS_FCGI_RECORD_HEADER_H
 
 #define FCGI_HEADER_LEN  8
+#define FCGI_BEGIN_REQUEST_LEN 8
+#define FCGI_END_REQUEST_LEN 8
+
+#define FCGI_VERSION_1           1
 
 #define FCGI_BEGIN_REQUEST       1
 #define FCGI_ABORT_REQUEST       2
@@ -18,6 +22,17 @@
 
 #define FCGI_NULL_REQUEST_ID     0
 
+#define FCGI_KEEP_CONN  1
+
+#define FCGI_RESPONDER  1
+#define FCGI_AUTHORIZER 2
+#define FCGI_FILTER     3
+
+#define FCGI_REQUEST_COMPLETE 0
+#define FCGI_CANT_MPX_CONN    1
+#define FCGI_OVERLOADED       2
+#define FCGI_UNKNOWN_ROLE     3
+
 #include "coros/async/future.h"
 
 namespace coros::base {
@@ -33,6 +48,8 @@ namespace coros::fcgi {
         int padding_length;
 
         base::AwaitableFuture parse(base::Socket& socket);
+
+        base::AwaitableFuture serialize(base::Socket& socket);
     };
 }
 

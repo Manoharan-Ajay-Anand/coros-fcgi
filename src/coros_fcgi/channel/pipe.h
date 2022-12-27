@@ -15,7 +15,8 @@ namespace coros::base {
 namespace coros::fcgi {
     struct PipeReceiveAwaiter {
         int& available;
-        std::mutex& sender_mutex;
+        bool& is_closed;
+        std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;
         bool await_ready() noexcept;
@@ -27,8 +28,9 @@ namespace coros::fcgi {
         int content_length;
         base::Socket* content_socket;
         int& available;
+        bool& is_closed;
         base::Socket*& socket;
-        std::mutex& sender_mutex;
+        std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;
         bool await_ready() noexcept;
@@ -38,15 +40,17 @@ namespace coros::fcgi {
 
     class Pipe {
         private:
+            bool is_closed;
             int available;
             base::Socket* socket;
-            std::mutex sender_mutex;
+            std::mutex pipe_mutex;
             base::EventHandlerExecutor receiver_executor;
             base::EventHandlerExecutor sender_executor;
         public:
             Pipe(base::ThreadPool& thread_pool);
             base::AwaitableFuture read(std::byte* dest, int size);
             base::AwaitableValue<std::byte> read_b();
+            base::AwaitableValue<bool> is_readable();
             PipeSendAwaiter send(base::Socket* content_socket, int content_length);
     };
 }

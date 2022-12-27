@@ -15,7 +15,7 @@ namespace coros::base {
 
 namespace coros::fcgi {
     struct Channel {
-        std::unordered_map<std::string, std::string> variables;
+        Pipe fcgi_variables;
         Pipe fcgi_stdin;
         Pipe fcgi_data;
         Response response;

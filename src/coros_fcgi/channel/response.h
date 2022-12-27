@@ -3,6 +3,7 @@
 
 #include "coros/async/future.h"
 
+#include <cstddef>
 #include <string>
 
 namespace coros::base {
@@ -15,12 +16,11 @@ namespace coros::fcgi {
             int request_id;
             base::Socket& socket;
             bool keep_conn;
-            std::string response_body;
-            base::AwaitableFuture send_response_body();
         public:
             Response(int request_id, base::Socket& socket, bool keep_conn);
-            base::AwaitableFuture println(std::string& s);
-            base::AwaitableFuture print(std::string& s);
+            base::AwaitableFuture write(std::byte* data, int size);
+            base::AwaitableFuture println(std::string s);
+            base::AwaitableFuture print(std::string s);
             base::AwaitableFuture flush();
     };
 }

@@ -12,10 +12,7 @@ namespace coros::base {
 namespace coros::fcgi {
     struct Channel;
 
-    class FcgiHandler {
-        public:
-            virtual base::Future handle_request(Channel& channel) = 0;
-    };
+    class FcgiHandler;
 
     class FcgiApplication : public base::ServerApplication {
         private:

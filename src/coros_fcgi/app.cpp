@@ -1,4 +1,5 @@
 #include "app.h"
+#include "handler.h"
 
 #include "coros/async/future.h"
 #include "coros/async/thread_pool.h"

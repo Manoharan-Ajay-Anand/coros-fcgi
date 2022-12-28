@@ -23,12 +23,10 @@ coros::base::AwaitableFuture coros::fcgi::Response::write(std::byte* data, int s
     if (remainder > 0) {
         padding_length = FCGI_ALIGNMENT_LEN - remainder;
     }
-    RecordHeader header { FCGI_VERSION_1, FCGI_STDOUT, request_id, size, padding_length};
+    RecordHeader header(FCGI_VERSION_1, FCGI_STDOUT, request_id, size);
     co_await header.serialize(socket);
     co_await socket.write(data, size);
-    for (int i = 0; i < padding_length; ++i) {
-        co_await socket.write_b(std::byte{0});
-    }
+    co_await header.pad(socket);
 }
 
 coros::base::AwaitableFuture coros::fcgi::Response::println(std::string s) {
@@ -41,13 +39,13 @@ coros::base::AwaitableFuture coros::fcgi::Response::print(std::string s) {
 }
 
 coros::base::AwaitableFuture coros::fcgi::Response::flush() {
-    RecordHeader stdout_header { FCGI_VERSION_1, FCGI_STDOUT, request_id, 0, 0};
+    RecordHeader stdout_header(FCGI_VERSION_1, FCGI_STDOUT, request_id, 0);
     co_await stdout_header.serialize(socket);
-    uint8_t data[FCGI_END_REQUEST_LEN];
-    data[4] = FCGI_REQUEST_COMPLETE;
-    RecordHeader end_header { FCGI_VERSION_1, FCGI_END_REQUEST, request_id, 8, 0};
-    co_await end_header.serialize(socket);
-    co_await socket.write(reinterpret_cast<std::byte*>(data), 8);
+    uint8_t end_request_data[FCGI_END_REQUEST_LEN];
+    end_request_data[4] = FCGI_REQUEST_COMPLETE;
+    RecordHeader end_request_header(FCGI_VERSION_1, FCGI_END_REQUEST, request_id, FCGI_END_REQUEST_LEN);
+    co_await end_request_header.serialize(socket);
+    co_await socket.write(reinterpret_cast<std::byte*>(end_request_data), FCGI_END_REQUEST_LEN);
     co_await socket.flush();
     if (!keep_conn) {
         socket.close_socket();

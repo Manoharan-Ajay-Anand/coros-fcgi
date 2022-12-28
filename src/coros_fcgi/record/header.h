@@ -57,9 +57,11 @@ namespace coros::fcgi {
         int content_length;
         int padding_length;
 
+        RecordHeader();
+        RecordHeader(ProtocolVersion version, RecordType type, int request_id, int content_length);
         base::AwaitableFuture parse(base::Socket& socket);
-
         base::AwaitableFuture serialize(base::Socket& socket);
+        base::AwaitableFuture pad(base::Socket& socket);
     };
 }
 

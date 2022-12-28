@@ -49,7 +49,7 @@ coros::base::AwaitableValue<bool> coros::fcgi::Pipe::is_readable() {
         available, is_closed, pipe_mutex, receiver_executor, sender_executor
     };
     std::lock_guard<std::mutex> guard(pipe_mutex);
-    co_return !is_closed;
+    co_return available > 0 || !is_closed;
 }
 
 coros::fcgi::PipeSendAwaiter coros::fcgi::Pipe::send(base::Socket* content_socket, 

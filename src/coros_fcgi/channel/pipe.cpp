@@ -12,15 +12,21 @@ coros::fcgi::Pipe::Pipe(base::ThreadPool& thread_pool): receiver_executor(thread
                                                         is_closed(false) {
 }
 
+coros::base::AwaitableValue<bool> coros::fcgi::Pipe::has_ended() {
+    co_await PipeReceiveAwaiter {
+        available, is_closed, pipe_mutex, receiver_executor, sender_executor
+    };
+    std::lock_guard<std::mutex> guard(pipe_mutex);
+    co_return available == 0;
+}
+
 coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, int size) {
     while (size > 0) {
-        co_await PipeReceiveAwaiter {
-            available, is_closed, pipe_mutex, receiver_executor, sender_executor
-        };
-        std::lock_guard<std::mutex> guard(pipe_mutex);
-        if (available == 0 && is_closed) {
-            throw std::runtime_error("Pipe read: cannot read as closed");
+        bool pipe_ended = co_await has_ended();
+        if (pipe_ended) {
+            throw std::runtime_error("Pipe read: cannot read as pipe has ended");
         }
+        std::lock_guard<std::mutex> guard(pipe_mutex);
         int size_to_read = std::min(size, available);
         co_await socket->read(dest, size_to_read);
         dest += size_to_read;
@@ -30,26 +36,14 @@ coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, int size) 
 }
 
 coros::base::AwaitableValue<std::byte> coros::fcgi::Pipe::read_b() {
-    co_await PipeReceiveAwaiter { available, is_closed, pipe_mutex, 
-                                  receiver_executor, sender_executor };
-    std::byte b;
-    {
-        std::lock_guard<std::mutex> guard(pipe_mutex);
-        if (available == 0 && is_closed) {
-            throw std::runtime_error("Pipe read_b: cannot read as closed");
-        }
-        b = co_await socket->read_b();
-        available -= 1;
+    bool pipe_ended = co_await has_ended();
+    if (pipe_ended) {
+        throw std::runtime_error("Pipe read_b: cannot read as closed");
     }
-    co_return b;
-}
-
-coros::base::AwaitableValue<bool> coros::fcgi::Pipe::is_readable() {
-    co_await PipeReceiveAwaiter {
-        available, is_closed, pipe_mutex, receiver_executor, sender_executor
-    };
     std::lock_guard<std::mutex> guard(pipe_mutex);
-    co_return available > 0 || !is_closed;
+    std::byte b = co_await socket->read_b();
+    available -= 1;
+    co_return b;
 }
 
 coros::fcgi::PipeSendAwaiter coros::fcgi::Pipe::send(base::Socket* content_socket, 

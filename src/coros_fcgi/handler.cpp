@@ -23,7 +23,7 @@ coros::base::AwaitableValue<long> get_param_detail_length(coros::fcgi::Pipe& pip
 
 coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
     Pipe& variables = channel.fcgi_variables;
-    while (co_await variables.is_readable()) {
+    while (!(co_await variables.has_ended())) {
         long name_length = co_await get_param_detail_length(variables);
         long value_length = co_await get_param_detail_length(variables);
         std::string name, value;

@@ -48,9 +48,9 @@ namespace coros::fcgi {
             base::EventHandlerExecutor sender_executor;
         public:
             Pipe(base::ThreadPool& thread_pool);
+            base::AwaitableValue<bool> has_ended();
             base::AwaitableFuture read(std::byte* dest, int size);
             base::AwaitableValue<std::byte> read_b();
-            base::AwaitableValue<bool> is_readable();
             PipeSendAwaiter send(base::Socket* content_socket, int content_length);
     };
 }

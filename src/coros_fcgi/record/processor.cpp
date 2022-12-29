@@ -36,19 +36,19 @@ coros::base::AwaitableFuture coros::fcgi::RecordProcessor::begin_request(RecordH
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::set_param(RecordHeader& header, 
                                                                      coros::base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
-    co_await channel.fcgi_variables.send(&socket, header.content_length);
+    co_await channel.fcgi_variables.send(header.content_length);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::receive_stdin(RecordHeader& header, 
                                                                          coros::base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
-    co_await channel.fcgi_stdin.send(&socket, header.content_length);
+    co_await channel.fcgi_stdin.send(header.content_length);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::receive_data(RecordHeader& header, 
                                                                         coros::base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
-    co_await channel.fcgi_data.send(&socket, header.content_length);
+    co_await channel.fcgi_data.send(header.content_length);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::process(RecordHeader& header, 

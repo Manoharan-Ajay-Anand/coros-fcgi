@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-coros::base::AwaitableValue<long> get_param_detail_length(coros::fcgi::Pipe& pipe) {
+coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe& pipe) {
     uint8_t data[4];
     data[0] = static_cast<uint8_t>(co_await pipe.read_b());
     if ((data[0] >> 7) == 0) {
@@ -24,8 +24,8 @@ coros::base::AwaitableValue<long> get_param_detail_length(coros::fcgi::Pipe& pip
 coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
     Pipe& variables = channel.fcgi_variables;
     while (!(co_await variables.has_ended())) {
-        long name_length = co_await get_param_detail_length(variables);
-        long value_length = co_await get_param_detail_length(variables);
+        long long name_length = co_await get_param_detail_length(variables);
+        long long value_length = co_await get_param_detail_length(variables);
         std::string name, value;
         name.resize(name_length);
         value.resize(value_length);

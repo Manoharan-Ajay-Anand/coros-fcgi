@@ -8,8 +8,6 @@ project(Coros-FCGI
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
 
-add_subdirectory(libraries/coros)
-
 add_library(coros-fcgi STATIC 
     src/coros_fcgi/channel/channel.cpp
     src/coros_fcgi/channel/pipe.cpp
@@ -20,7 +18,4 @@ add_library(coros-fcgi STATIC
     src/coros_fcgi/app.cpp
     src/coros_fcgi/handler.cpp)
 target_include_directories(coros-fcgi PUBLIC src)
-target_link_libraries(coros-fcgi PUBLIC coros)
-
-add_executable(hello EXCLUDE_FROM_ALL examples/hello.cpp)
-target_link_libraries(hello PRIVATE coros-fcgi)
+target_link_libraries(coros-fcgi PRIVATE coros)

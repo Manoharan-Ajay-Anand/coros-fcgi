@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe& pipe) {
     uint8_t data[4];
@@ -23,6 +24,7 @@ coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe
 
 coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
     Pipe& variables = channel.fcgi_variables;
+    std::unordered_map<std::string, std::string> variables_map;
     while (!(co_await variables.has_ended())) {
         long long name_length = co_await get_param_detail_length(variables);
         long long value_length = co_await get_param_detail_length(variables);
@@ -31,7 +33,7 @@ coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
         value.resize(value_length);
         co_await variables.read(reinterpret_cast<std::byte*>(name.data()), name.size());
         co_await variables.read(reinterpret_cast<std::byte*>(value.data()), value.size());
-        std::cout << name << ": " << value << std::endl;
+        variables_map[std::move(name)] = std::move(value);
     }
     co_await this->process_request(channel);
 }

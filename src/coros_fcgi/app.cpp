@@ -21,7 +21,6 @@ coros::fcgi::FcgiApplication::FcgiApplication(base::ThreadPool& thread_pool,
 coros::base::Future coros::fcgi::FcgiApplication::on_request(base::Server& server, 
                                                              std::shared_ptr<base::Socket> socket) {
     try {
-        std::cout << "Received connection" << std::endl;
         while (true) {
             RecordHeader header;
             co_await header.parse(*socket);

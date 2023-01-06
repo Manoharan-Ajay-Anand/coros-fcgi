@@ -28,22 +28,11 @@ coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, long long 
         }
         std::lock_guard<std::mutex> guard(pipe_mutex);
         long long size_to_read = std::min(size, available);
-        co_await socket.read(dest, size_to_read);
+        co_await socket.read(dest, size_to_read, true);
         dest += size_to_read;
         size -= size_to_read;
         available -= size_to_read;
     }
-}
-
-coros::base::AwaitableValue<std::byte> coros::fcgi::Pipe::read_b() {
-    bool pipe_ended = co_await has_ended();
-    if (pipe_ended) {
-        throw std::runtime_error("Pipe read_b: cannot read as closed");
-    }
-    std::lock_guard<std::mutex> guard(pipe_mutex);
-    std::byte b = co_await socket.read_b();
-    available -= 1;
-    co_return b;
 }
 
 coros::fcgi::PipeSendAwaiter coros::fcgi::Pipe::send(long long content_length) {

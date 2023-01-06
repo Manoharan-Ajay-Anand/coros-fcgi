@@ -23,7 +23,10 @@ coros::base::Future coros::fcgi::FcgiApplication::on_request(base::Server& serve
     try {
         while (true) {
             RecordHeader header;
-            co_await header.parse(*socket);
+            bool can_parse = co_await header.parse(*socket);
+            if (!can_parse) {
+                break;
+            }
             co_await processor.process(header, *socket);
         }
     } catch (std::runtime_error error) {

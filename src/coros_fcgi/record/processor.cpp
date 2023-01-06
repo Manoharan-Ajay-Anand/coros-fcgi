@@ -24,7 +24,7 @@ coros::fcgi::RecordProcessor::RecordProcessor(base::ThreadPool& thread_pool,
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::begin_request(RecordHeader& header, 
                                                                          coros::base::Socket& socket) {
     uint8_t data[FCGI_BEGIN_REQUEST_LEN];
-    co_await socket.read(reinterpret_cast<std::byte*>(data), FCGI_BEGIN_REQUEST_LEN);
+    co_await socket.read(reinterpret_cast<std::byte*>(data), FCGI_BEGIN_REQUEST_LEN, true);
     int request_id = header.request_id;
     bool keep_conn = (data[2] & FCGI_KEEP_CONN) == FCGI_KEEP_CONN;
     channel_map[request_id] = std::make_unique<Channel>(request_id, socket, keep_conn, thread_pool);
@@ -71,5 +71,5 @@ coros::base::AwaitableFuture coros::fcgi::RecordProcessor::process(RecordHeader&
             ss << "Unknown header type: " << header.type;
             throw std::runtime_error(ss.str());
     }
-    co_await socket.skip(header.padding_length);
+    co_await socket.skip(header.padding_length, true);
 }

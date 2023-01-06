@@ -13,7 +13,7 @@
 
 coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe& pipe) {
     uint8_t data[4];
-    data[0] = static_cast<uint8_t>(co_await pipe.read_b());
+    co_await pipe.read(reinterpret_cast<std::byte*>(data), 1);
     if ((data[0] >> 7) == 0) {
         co_return data[0];
     }

@@ -48,7 +48,6 @@ namespace coros::fcgi {
             Pipe(base::ThreadPool& thread_pool, base::Socket& socket);
             base::AwaitableValue<bool> has_ended();
             base::AwaitableFuture read(std::byte* dest, long long size);
-            base::AwaitableValue<std::byte> read_b();
             PipeSendAwaiter send(long long content_length);
     };
 }

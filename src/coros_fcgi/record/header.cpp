@@ -23,14 +23,19 @@ coros::fcgi::RecordHeader::RecordHeader(ProtocolVersion version, RecordType type
     }
 }
 
-coros::base::AwaitableFuture coros::fcgi::RecordHeader::parse(coros::base::Socket& socket) {
+coros::base::AwaitableValue<bool> coros::fcgi::RecordHeader::parse(coros::base::Socket& socket) {
     uint8_t header_data[FCGI_HEADER_LEN];
-    co_await socket.read(reinterpret_cast<std::byte*>(header_data), FCGI_HEADER_LEN);
+    long long size_read = co_await socket.read(reinterpret_cast<std::byte*>(header_data), 
+                                               FCGI_HEADER_LEN, false);
+    if (size_read < FCGI_HEADER_LEN) {
+        co_return false;
+    }
     this->version = static_cast<ProtocolVersion>(header_data[0]);
     this->type = static_cast<RecordType>(header_data[1]);
     this->request_id = coros::fcgi::read_uint16_be(header_data + 2);
     this->content_length = coros::fcgi::read_uint16_be(header_data + 4);
     this->padding_length = header_data[6];
+    co_return true;
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordHeader::serialize(coros::base::Socket& socket) {
@@ -44,7 +49,6 @@ coros::base::AwaitableFuture coros::fcgi::RecordHeader::serialize(coros::base::S
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordHeader::pad(coros::base::Socket& socket) {
-    for (int i = 0; i < padding_length; ++i) {
-        co_await socket.write_b(std::byte{0});
-    }
+    std::byte padding_bytes[FCGI_ALIGNMENT_LEN];
+    co_await socket.write(padding_bytes, padding_length);
 }

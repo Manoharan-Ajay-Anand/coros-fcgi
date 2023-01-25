@@ -21,7 +21,7 @@ namespace coros::fcgi {
             base::AwaitableFuture write(std::byte* data, int size);
             base::AwaitableFuture println(std::string s);
             base::AwaitableFuture print(std::string s);
-            base::AwaitableFuture flush();
+            base::AwaitableFuture close();
     };
 }
 

@@ -28,6 +28,7 @@ namespace coros::fcgi {
             base::AwaitableFuture set_param(RecordHeader& header, base::Socket& socket);
             base::AwaitableFuture receive_stdin(RecordHeader& header, base::Socket& socket);
             base::AwaitableFuture receive_data(RecordHeader& header, base::Socket& socket);
+            base::AwaitableFuture handle_unknown_type(RecordHeader& header, base::Socket& socket);
         public:
             RecordProcessor(base::ThreadPool& thread_pool, FcgiHandler& fcgi_handler);
             base::AwaitableFuture process(RecordHeader& header, base::Socket& socket);

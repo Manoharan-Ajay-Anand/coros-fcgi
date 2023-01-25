@@ -38,7 +38,7 @@ coros::base::AwaitableFuture coros::fcgi::Response::print(std::string s) {
     co_await write(reinterpret_cast<std::byte*>(s.data()), s.size());
 }
 
-coros::base::AwaitableFuture coros::fcgi::Response::flush() {
+coros::base::AwaitableFuture coros::fcgi::Response::close() {
     RecordHeader stdout_header(FCGI_VERSION_1, FCGI_STDOUT, request_id, 0);
     co_await stdout_header.serialize(socket);
     uint8_t end_request_data[FCGI_END_REQUEST_LEN];

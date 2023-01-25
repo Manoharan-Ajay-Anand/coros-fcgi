@@ -22,7 +22,7 @@ coros::fcgi::RecordProcessor::RecordProcessor(base::ThreadPool& thread_pool,
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::begin_request(RecordHeader& header, 
-                                                                         coros::base::Socket& socket) {
+                                                                         base::Socket& socket) {
     uint8_t data[FCGI_BEGIN_REQUEST_LEN];
     co_await socket.read(reinterpret_cast<std::byte*>(data), FCGI_BEGIN_REQUEST_LEN, true);
     int request_id = header.request_id;
@@ -34,21 +34,32 @@ coros::base::AwaitableFuture coros::fcgi::RecordProcessor::begin_request(RecordH
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::set_param(RecordHeader& header, 
-                                                                     coros::base::Socket& socket) {
+                                                                     base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
     co_await channel.fcgi_variables.send(header.content_length);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::receive_stdin(RecordHeader& header, 
-                                                                         coros::base::Socket& socket) {
+                                                                         base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
     co_await channel.fcgi_stdin.send(header.content_length);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::receive_data(RecordHeader& header, 
-                                                                        coros::base::Socket& socket) {
+                                                                        base::Socket& socket) {
     Channel& channel = *channel_map[header.request_id];
     co_await channel.fcgi_data.send(header.content_length);
+}
+
+coros::base::AwaitableFuture coros::fcgi::RecordProcessor::handle_unknown_type(RecordHeader& header, 
+                                                                               base::Socket& socket) {
+    co_await socket.skip(header.content_length, true);
+    RecordHeader res_header(FCGI_VERSION_1, FCGI_UNKNOWN_TYPE, 0, 8);
+    char data[8];
+    data[0] = header.type;
+    co_await res_header.serialize(socket);
+    co_await socket.write(reinterpret_cast<std::byte*>(data), 8);
+    co_await res_header.pad(socket);
 }
 
 coros::base::AwaitableFuture coros::fcgi::RecordProcessor::process(RecordHeader& header, 
@@ -67,9 +78,7 @@ coros::base::AwaitableFuture coros::fcgi::RecordProcessor::process(RecordHeader&
             co_await receive_data(header, socket);
             break;
         default:
-            std::stringstream ss;
-            ss << "Unknown header type: " << header.type;
-            throw std::runtime_error(ss.str());
+            co_await handle_unknown_type(header, socket);
     }
     co_await socket.skip(header.padding_length, true);
 }

@@ -23,17 +23,22 @@ coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe
 }
 
 coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
-    Pipe& variables = channel.fcgi_variables;
-    std::unordered_map<std::string, std::string> variables_map;
-    while (!(co_await variables.has_ended())) {
-        long long name_length = co_await get_param_detail_length(variables);
-        long long value_length = co_await get_param_detail_length(variables);
-        std::string name, value;
-        name.resize(name_length);
-        value.resize(value_length);
-        co_await variables.read(reinterpret_cast<std::byte*>(name.data()), name.size());
-        co_await variables.read(reinterpret_cast<std::byte*>(value.data()), value.size());
-        variables_map[std::move(name)] = std::move(value);
+    try {
+        Pipe& variables = channel.fcgi_variables;
+        std::unordered_map<std::string, std::string> variables_map;
+        while (!(co_await variables.has_ended())) {
+            long long name_length = co_await get_param_detail_length(variables);
+            long long value_length = co_await get_param_detail_length(variables);
+            std::string name, value;
+            name.resize(name_length);
+            value.resize(value_length);
+            co_await variables.read(reinterpret_cast<std::byte*>(name.data()), name.size());
+            co_await variables.read(reinterpret_cast<std::byte*>(value.data()), value.size());
+            variables_map[std::move(name)] = std::move(value);
+        }
+        co_await this->process_request(channel);
+        co_await channel.response.close();
+    } catch (std::runtime_error error) {
+        std::cerr << error.what() << std::endl;
     }
-    co_await this->process_request(channel);
 }

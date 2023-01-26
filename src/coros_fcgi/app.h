@@ -16,7 +16,8 @@ namespace coros::fcgi {
 
     class FcgiApplication : public base::ServerApplication {
         private:
-            RecordProcessor processor;
+            base::ThreadPool& thread_pool;
+            FcgiHandler& fcgi_handler;
         public:
             FcgiApplication(base::ThreadPool& thread_pool, FcgiHandler& fcgi_handler);
             base::Future on_request(base::Server& server, std::shared_ptr<base::Socket> socket);

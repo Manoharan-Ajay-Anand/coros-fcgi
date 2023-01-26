@@ -14,13 +14,14 @@
 #include <stdexcept>
 
 coros::fcgi::FcgiApplication::FcgiApplication(base::ThreadPool& thread_pool, 
-                                              FcgiHandler& fcgi_handler): processor(thread_pool, 
-                                                                                    fcgi_handler) {
+                                              FcgiHandler& fcgi_handler): thread_pool(thread_pool), 
+                                                                          fcgi_handler(fcgi_handler) {
 }
 
 coros::base::Future coros::fcgi::FcgiApplication::on_request(base::Server& server, 
                                                              std::shared_ptr<base::Socket> socket) {
     try {
+        RecordProcessor processor(thread_pool, fcgi_handler);
         while (true) {
             RecordHeader header;
             bool can_parse = co_await header.parse(*socket);
@@ -30,7 +31,7 @@ coros::base::Future coros::fcgi::FcgiApplication::on_request(base::Server& serve
             co_await processor.process(header, *socket);
         }
     } catch (std::runtime_error error) {
-        std::cout << error.what() << std::endl;
+        std::cerr << error.what() << std::endl;
     }
     socket->close_socket();
 }

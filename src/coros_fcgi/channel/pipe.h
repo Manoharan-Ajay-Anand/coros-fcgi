@@ -4,6 +4,7 @@
 #include "coros/async/future.h"
 #include "coros/event/executor.h"
 
+#include <atomic>
 #include <mutex>
 
 namespace coros::base {
@@ -14,8 +15,8 @@ namespace coros::base {
 
 namespace coros::fcgi {
     struct PipeReceiveAwaiter {
-        long long& available;
-        bool& is_closed;
+        std::atomic_llong& available;
+        std::atomic_bool& is_closed;
         std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;
@@ -26,8 +27,8 @@ namespace coros::fcgi {
 
     struct PipeSendAwaiter {
         long long content_length;
-        long long& available;
-        bool& is_closed;
+        std::atomic_llong& available;
+        std::atomic_bool& is_closed;
         std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;
@@ -38,8 +39,8 @@ namespace coros::fcgi {
 
     class Pipe {
         private:
-            bool is_closed;
-            long long available;
+            std::atomic_bool is_closed;
+            std::atomic_llong available;
             base::Socket& socket;
             std::mutex pipe_mutex;
             base::EventHandlerExecutor receiver_executor;

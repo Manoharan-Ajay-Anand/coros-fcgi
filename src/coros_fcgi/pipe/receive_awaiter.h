@@ -4,20 +4,17 @@
 #include <atomic>
 #include <coroutine>
 #include <mutex>
-
-namespace coros::base {
-    class EventHandlerExecutor;
-}
+#include <optional>
 
 namespace coros::fcgi {
     struct PipeReceiveAwaiter {
         long long& available;
         bool& is_closed;
         std::mutex& pipe_mutex;
-        base::EventHandlerExecutor& receiver_executor;
-        base::EventHandlerExecutor& sender_executor;
+        std::optional<std::coroutine_handle<>>& receiver_opt;
+        std::optional<std::coroutine_handle<>>& sender_opt;
         bool await_ready() noexcept;
-        bool await_suspend(std::coroutine_handle<> handle);
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<> handle);
         void await_resume();
     };
 }

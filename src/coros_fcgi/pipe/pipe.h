@@ -5,9 +5,10 @@
 #include "send_awaiter.h"
 
 #include "coros/async/future.h"
-#include "coros/event/executor.h"
 
 #include <mutex>
+#include <optional>
+#include <coroutine>
 
 namespace coros::base {
     class Socket;
@@ -20,10 +21,11 @@ namespace coros::fcgi {
         private:
             bool is_closed;
             long long available;
+            base::ThreadPool& thread_pool;
             base::Socket& socket;
             std::mutex pipe_mutex;
-            base::EventHandlerExecutor receiver_executor;
-            base::EventHandlerExecutor sender_executor;
+            std::optional<std::coroutine_handle<>> receiver_opt;
+            std::optional<std::coroutine_handle<>> sender_opt;
         public:
             Pipe(base::ThreadPool& thread_pool, base::Socket& socket);
             base::AwaitableValue<bool> has_ended();

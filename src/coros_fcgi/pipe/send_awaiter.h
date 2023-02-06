@@ -4,9 +4,10 @@
 #include <atomic>
 #include <coroutine>
 #include <mutex>
+#include <optional>
 
 namespace coros::base {
-    class EventHandlerExecutor;
+    class ThreadPool;
 }
 
 namespace coros::fcgi {
@@ -15,10 +16,11 @@ namespace coros::fcgi {
         long long& available;
         bool& is_closed;
         std::mutex& pipe_mutex;
-        base::EventHandlerExecutor& receiver_executor;
-        base::EventHandlerExecutor& sender_executor;
+        std::optional<std::coroutine_handle<>>& receiver_opt;
+        std::optional<std::coroutine_handle<>>& sender_opt;
+        base::ThreadPool& thread_pool;
         bool await_ready() noexcept;
-        void await_suspend(std::coroutine_handle<> handle);
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<> handle);
         void await_resume();
     };
 }

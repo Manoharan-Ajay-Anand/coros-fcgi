@@ -8,16 +8,15 @@
 #include <stdexcept>
 
 
-coros::fcgi::Pipe::Pipe(base::ThreadPool& thread_pool, base::Socket& socket)
-        : receiver_executor(thread_pool), sender_executor(thread_pool),
-          socket(socket) {
+coros::fcgi::Pipe::Pipe(base::ThreadPool& thread_pool, 
+                        base::Socket& socket): thread_pool(thread_pool), socket(socket) {
     available = 0;
     is_closed = false;
 }
 
 coros::base::AwaitableValue<bool> coros::fcgi::Pipe::has_ended() {
     co_await PipeReceiveAwaiter {
-        available, is_closed, pipe_mutex, receiver_executor, sender_executor
+        available, is_closed, pipe_mutex, receiver_opt, sender_opt
     };
     co_return available == 0;
 }
@@ -25,7 +24,7 @@ coros::base::AwaitableValue<bool> coros::fcgi::Pipe::has_ended() {
 coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, long long size) {
     while (size > 0) {
         co_await PipeReceiveAwaiter {
-            available, is_closed, pipe_mutex, receiver_executor, sender_executor
+            available, is_closed, pipe_mutex, receiver_opt, sender_opt
         };
         std::lock_guard<std::mutex> guard(pipe_mutex);
         if (available == 0) {
@@ -43,6 +42,7 @@ coros::fcgi::PipeSendAwaiter coros::fcgi::Pipe::send(long long content_length) {
     return {
         content_length, 
         available, is_closed, pipe_mutex, 
-        receiver_executor, sender_executor
+        receiver_opt, sender_opt,
+        thread_pool
     };
 }

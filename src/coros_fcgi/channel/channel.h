@@ -1,7 +1,7 @@
 #ifndef COROS_FCGI_CHANNEL_CHANNEL_H
 #define COROS_FCGI_CHANNEL_CHANNEL_H
 
-#include "pipe.h"
+#include "coros_fcgi/pipe/pipe.h"
 #include "response.h"
 
 #include <string>

@@ -1,6 +1,8 @@
 add_library(coros-fcgi STATIC 
     src/coros_fcgi/channel/channel.cpp
-    src/coros_fcgi/channel/pipe.cpp
+    src/coros_fcgi/pipe/pipe.cpp
+    src/coros_fcgi/pipe/receive_awaiter.cpp
+    src/coros_fcgi/pipe/send_awaiter.cpp
     src/coros_fcgi/channel/response.cpp
     src/coros_fcgi/commons/integer.cpp
     src/coros_fcgi/record/header.cpp

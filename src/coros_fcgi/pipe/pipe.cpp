@@ -7,9 +7,12 @@
 #include <mutex>
 #include <stdexcept>
 
+
 coros::fcgi::Pipe::Pipe(base::ThreadPool& thread_pool, base::Socket& socket)
         : receiver_executor(thread_pool), sender_executor(thread_pool),
-          socket(socket), is_closed(false) {
+          socket(socket) {
+    available = 0;
+    is_closed = false;
 }
 
 coros::base::AwaitableValue<bool> coros::fcgi::Pipe::has_ended() {
@@ -39,42 +42,4 @@ coros::fcgi::PipeSendAwaiter coros::fcgi::Pipe::send(long long content_length) {
         available, is_closed, pipe_mutex, 
         receiver_executor, sender_executor
     };
-}
-
-bool coros::fcgi::PipeReceiveAwaiter::await_ready() noexcept {
-    return available > 0 || is_closed;
-}
-
-void coros::fcgi::PipeReceiveAwaiter::await_suspend(std::coroutine_handle<> handle) {
-    std::lock_guard<std::mutex> guard(pipe_mutex);
-    receiver_executor.set_handler([&, handle]() {
-        handle.resume();
-    });
-    sender_executor.on_event();
-}
-
-void coros::fcgi::PipeReceiveAwaiter::await_resume() {
-}
-
-bool coros::fcgi::PipeSendAwaiter::await_ready() noexcept {
-    if (content_length > 0) {
-        return false;
-    }
-    if (!is_closed.exchange(true)) {
-        std::lock_guard<std::mutex> guard(pipe_mutex);
-        receiver_executor.on_event();
-    }
-    return true;
-}
-
-void coros::fcgi::PipeSendAwaiter::await_suspend(std::coroutine_handle<> handle) {
-    available += content_length;
-    std::lock_guard<std::mutex> guard(pipe_mutex);
-    sender_executor.set_handler([&, handle]() {
-        handle.resume();
-    });
-    receiver_executor.on_event();
-}
-
-void coros::fcgi::PipeSendAwaiter::await_resume() {
 }

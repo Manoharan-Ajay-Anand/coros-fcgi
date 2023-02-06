@@ -3,7 +3,6 @@
 #include "coros/async/future.h"
 
 #include "coros_fcgi/channel/channel.h"
-#include "coros_fcgi/channel/pipe.h"
 #include "coros_fcgi/commons/integer.h"
 
 #include <cstddef>

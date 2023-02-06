@@ -11,13 +11,13 @@ namespace coros::base {
 
 namespace coros::fcgi {
     struct PipeReceiveAwaiter {
-        std::atomic_llong& available;
-        std::atomic_bool& is_closed;
+        long long& available;
+        bool& is_closed;
         std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;
         bool await_ready() noexcept;
-        void await_suspend(std::coroutine_handle<> handle);
+        bool await_suspend(std::coroutine_handle<> handle);
         void await_resume();
     };
 }

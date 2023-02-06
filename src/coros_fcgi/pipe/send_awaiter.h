@@ -12,8 +12,8 @@ namespace coros::base {
 namespace coros::fcgi {
     struct PipeSendAwaiter {
         long long content_length;
-        std::atomic_llong& available;
-        std::atomic_bool& is_closed;
+        long long& available;
+        bool& is_closed;
         std::mutex& pipe_mutex;
         base::EventHandlerExecutor& receiver_executor;
         base::EventHandlerExecutor& sender_executor;

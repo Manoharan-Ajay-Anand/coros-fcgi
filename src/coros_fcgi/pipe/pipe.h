@@ -7,7 +7,6 @@
 #include "coros/async/future.h"
 #include "coros/event/executor.h"
 
-#include <atomic>
 #include <mutex>
 
 namespace coros::base {
@@ -19,8 +18,8 @@ namespace coros::base {
 namespace coros::fcgi {
     class Pipe {
         private:
-            std::atomic_bool is_closed;
-            std::atomic_llong available;
+            bool is_closed;
+            long long available;
             base::Socket& socket;
             std::mutex pipe_mutex;
             base::EventHandlerExecutor receiver_executor;

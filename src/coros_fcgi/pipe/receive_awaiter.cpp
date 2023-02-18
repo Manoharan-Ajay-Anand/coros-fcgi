@@ -2,8 +2,7 @@
 #include "awaiter.h"
 
 bool coros::fcgi::PipeReceiveAwaiter::await_ready() noexcept {
-    std::lock_guard<std::mutex> guard(pipe_mutex);
-    return available > 0 || is_closed;
+    return false;
 }
 
 std::coroutine_handle<> 

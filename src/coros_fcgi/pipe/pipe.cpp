@@ -23,18 +23,23 @@ coros::base::AwaitableValue<bool> coros::fcgi::Pipe::has_ended() {
 
 coros::base::AwaitableFuture coros::fcgi::Pipe::read(std::byte* dest, long long size) {
     while (size > 0) {
+        {
+            std::lock_guard<std::mutex> guard(pipe_mutex);
+            if (available > 0 || is_closed) {
+                if (available == 0) {
+                    throw std::runtime_error("Pipe read: cannot read as pipe has ended");
+                }
+                long long size_to_read = std::min(size, available);
+                co_await socket.read(dest, size_to_read, true);
+                dest += size_to_read;
+                size -= size_to_read;
+                available -= size_to_read;
+                continue;
+            }
+        }
         co_await PipeReceiveAwaiter {
             available, is_closed, pipe_mutex, receiver_opt, sender_opt
         };
-        std::lock_guard<std::mutex> guard(pipe_mutex);
-        if (available == 0) {
-            throw std::runtime_error("Pipe read: cannot read as pipe has ended");
-        }
-        long long size_to_read = std::min(size, available);
-        co_await socket.read(dest, size_to_read, true);
-        dest += size_to_read;
-        size -= size_to_read;
-        available -= size_to_read;
     }
 }
 

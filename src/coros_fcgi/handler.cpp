@@ -4,6 +4,7 @@
 
 #include "coros_fcgi/channel/channel.h"
 #include "coros_fcgi/commons/integer.h"
+#include "coros_fcgi/application/request.h"
 
 #include <cstddef>
 #include <iostream>
@@ -24,7 +25,7 @@ coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe
 coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
     try {
         Pipe& variables = channel.fcgi_variables;
-        std::unordered_map<std::string, std::string> variables_map;
+        std::unordered_map<std::string, std::string> variable_values;
         while (!(co_await variables.has_ended())) {
             long long name_length = co_await get_param_detail_length(variables);
             long long value_length = co_await get_param_detail_length(variables);
@@ -33,9 +34,10 @@ coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
             value.resize(value_length);
             co_await variables.read(reinterpret_cast<std::byte*>(name.data()), name.size());
             co_await variables.read(reinterpret_cast<std::byte*>(value.data()), value.size());
-            variables_map[std::move(name)] = std::move(value);
+            variable_values[std::move(name)] = std::move(value);
         }
-        co_await this->process_request(channel);
+        Request request { variable_values, channel.fcgi_stdin };
+        co_await this->process_request(request, channel.response);
         co_await channel.response.close();
     } catch (std::runtime_error error) {
         std::cerr << error.what() << std::endl;

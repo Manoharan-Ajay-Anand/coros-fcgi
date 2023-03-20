@@ -3,13 +3,21 @@
 
 #include "coros/async/future.h"
 
+#include <string>
+#include <unordered_map>
+
 namespace coros::fcgi {
     struct Channel;
+
+    struct Request;
+
+    class Response;
 
     class FcgiHandler {
         public:
             base::Future on_request(Channel& channel);
-            virtual base::AwaitableFuture process_request(Channel& channel) = 0;
+            virtual base::AwaitableFuture process_request(Request& request,
+                                                          Response& response) = 0;
     };
 }
 

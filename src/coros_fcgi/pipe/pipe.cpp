@@ -7,7 +7,6 @@
 #include <mutex>
 #include <stdexcept>
 
-
 coros::fcgi::Pipe::Pipe(base::ThreadPool& thread_pool, 
                         base::Socket& socket): thread_pool(thread_pool), socket(socket) {
     available = 0;

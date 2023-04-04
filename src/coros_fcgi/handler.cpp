@@ -5,11 +5,26 @@
 #include "coros_fcgi/channel/channel.h"
 #include "coros_fcgi/commons/integer.h"
 #include "coros_fcgi/application/request.h"
+#include "coros_fcgi/application/endpoint.h"
 
 #include <cstddef>
 #include <iostream>
 #include <string>
 #include <unordered_map>
+
+void coros::fcgi::FcgiHandler::add_endpoint(const std::string& route, FcgiEndpoint& endpoint) {
+    route_endpoint_map[route] = &endpoint;
+}
+
+coros::base::AwaitableFuture coros::fcgi::FcgiHandler::route(Request& request,
+                                                             Response& response) {
+    const std::string& route = request.variables["DOCUMENT_URI"];
+    auto it = route_endpoint_map.find(route);
+    if (it != route_endpoint_map.end()) {
+        return it->second->on_request(request, response);
+    }
+    return response.println("status: 404 Not Found\r\n");
+}
 
 coros::base::AwaitableValue<long long> get_param_detail_length(coros::fcgi::Pipe& pipe) {
     uint8_t data[4];
@@ -37,7 +52,7 @@ coros::base::Future coros::fcgi::FcgiHandler::on_request(Channel& channel) {
             variable_values[std::move(name)] = std::move(value);
         }
         Request request { variable_values, channel.fcgi_stdin };
-        co_await this->process_request(request, channel.response);
+        co_await this->route(request, channel.response);
         co_await channel.response.close();
     } catch (std::runtime_error error) {
         std::cerr << error.what() << std::endl;

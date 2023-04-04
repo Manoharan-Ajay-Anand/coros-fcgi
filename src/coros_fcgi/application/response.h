@@ -18,9 +18,9 @@ namespace coros::fcgi {
             bool keep_conn;
         public:
             Response(int request_id, base::Socket& socket, bool keep_conn);
-            base::AwaitableFuture write(std::byte* data, int size);
+            base::AwaitableFuture write(const std::byte* data, int size);
             base::AwaitableFuture println(std::string s);
-            base::AwaitableFuture print(std::string s);
+            base::AwaitableFuture print(const std::string& s);
             base::AwaitableFuture close();
     };
 }

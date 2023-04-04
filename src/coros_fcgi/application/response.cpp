@@ -17,7 +17,7 @@ coros::fcgi::Response::Response(int request_id, base::Socket& socket, bool keep_
         : request_id(request_id), socket(socket), keep_conn(keep_conn) {
 }
 
-coros::base::AwaitableFuture coros::fcgi::Response::write(std::byte* data, int size) {
+coros::base::AwaitableFuture coros::fcgi::Response::write(const std::byte* data, int size) {
     int padding_length = 0;
     int remainder = (FCGI_HEADER_LEN + size) % FCGI_ALIGNMENT_LEN;
     if (remainder > 0) {
@@ -31,11 +31,11 @@ coros::base::AwaitableFuture coros::fcgi::Response::write(std::byte* data, int s
 
 coros::base::AwaitableFuture coros::fcgi::Response::println(std::string s) {
     s.append(newline);
-    co_await write(reinterpret_cast<std::byte*>(s.data()), s.size());
+    return this->print(s);
 }
 
-coros::base::AwaitableFuture coros::fcgi::Response::print(std::string s) {
-    co_await write(reinterpret_cast<std::byte*>(s.data()), s.size());
+coros::base::AwaitableFuture coros::fcgi::Response::print(const std::string& s) {
+    co_await write(reinterpret_cast<const std::byte*>(s.data()), s.size());
 }
 
 coros::base::AwaitableFuture coros::fcgi::Response::close() {

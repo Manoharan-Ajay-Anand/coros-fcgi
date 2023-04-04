@@ -13,11 +13,15 @@ namespace coros::fcgi {
 
     class Response;
 
+    class FcgiEndpoint;
+
     class FcgiHandler {
+        private:
+            std::unordered_map<std::string, FcgiEndpoint*> route_endpoint_map;
+            base::AwaitableFuture route(Request& request, Response& response);
         public:
+            void add_endpoint(const std::string& route, FcgiEndpoint& endpoint);
             base::Future on_request(Channel& channel);
-            virtual base::AwaitableFuture process_request(Request& request,
-                                                          Response& response) = 0;
     };
 }
 
